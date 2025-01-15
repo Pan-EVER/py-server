@@ -11,10 +11,11 @@ import sys
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    stream=sys.stdout
+    stream=sys.stdout,
 )
 
 logger = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -27,18 +28,19 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"Failed to create database tables: {str(e)}")
         raise
-    
+
     try:
         yield
     finally:
         logger.info("Application shutdown initiated")
         # Add any cleanup logic here if needed
 
+
 app = FastAPI(
     lifespan=lifespan,
     title="FastAPI Application",
     description="FastAPI application with SQLAlchemy integration",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 # CORS (Cross-Origin Resource Sharing) configuration
@@ -54,9 +56,9 @@ app.add_middleware(
 # Include API routers
 # This mounts the users router at /users endpoint
 app.include_router(
-    users.router,  # Router containing user-related endpoints
-    prefix="/users"  # All routes will be prefixed with /users
+    users.router, prefix="/users"  # Router containing user-related endpoints
 )
+
 
 @app.get("/")
 def read_root():

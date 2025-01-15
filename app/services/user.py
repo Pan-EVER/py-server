@@ -22,11 +22,11 @@ def create_user(db: Session, user: UserCreate):
     db.refresh(db_user)
     return db_user
 
-def update_user(db: Session, user_id: int, user: UserUpdate):
-    db_user = get_user(db, user_id)
+def update_user(db: Session, user_id: int, user: dict):
+    db_user = db.query(User).filter(User.id == user_id).first()
     if db_user:
-        for key, value in user.dict(exclude_unset=True).items():
-            setattr(db_user, key, value)
+        for field, value in user.items():
+            setattr(db_user, field, value)
         db.commit()
         db.refresh(db_user)
     return db_user
