@@ -1,4 +1,4 @@
-目录结构说明
+## 目录结构说明
 ```
 fastapi_project/
 ├── app/                      # 主应用代码
@@ -46,4 +46,43 @@ fastapi_project/
 ├── .gitignore                # Git 忽略文件
 ├── README.md                 # 项目说明
 └── run.py                    # 启动脚本
+
+## Features
+
+- RESTful API endpoints for CRUD operations
+- MySQL database integration using SQLAlchemy ORM
+- Pydantic data validation
+- Environment variables configuration
+- Automatic API documentation
+- Modular project structure
+
+## Setup
+
+1. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. Create `.env` file with your database credentials:
+   ```env
+   DATABASE_URL=mysql+pymysql://user:password@localhost:3306/dbname
+   ```
+
+3. Run the application:
+   ```bash
+   uvicorn main:app --reload
+   ```
+
+## API Documentation
+
+- Swagger UI: http://localhost:8000/docs
+- Redoc: http://localhost:8000/redoc
+
+### Users API Endpoints
+
+- `POST /users/` - Create new user
+- `GET /users/` - List all users
+- `GET /users/{user_id}` - Get user details
+- `PUT /users/{user_id}` - Update user
+- `DELETE /users/{user_id}` - Delete user
 ```

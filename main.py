@@ -1,31 +1,63 @@
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
-from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.middleware.cors import CORSMiddleware
+from app.core.database import engine, Base
+from app.api import users
 
-app = FastAPI()
+from contextlib import asynccontextmanager
+import logging
+import sys
 
+# Configure basic logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    stream=sys.stdout
+)
 
+logger = logging.getLogger(__name__)
 
-app = FastAPI(docs_url=None)  # 禁用默认的 Swagger UI
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan management with proper error handling and logging"""
+    # 启动时创建数据库表
+    try:
+        logger.info("Creating database tables...")
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database tables created successfully")
+    except Exception as e:
+        logger.error(f"Failed to create database tables: {str(e)}")
+        raise
+    
+    try:
+        yield
+    finally:
+        logger.info("Application shutdown initiated")
+        # Add any cleanup logic here if needed
 
-# 挂载静态文件目录
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app = FastAPI(
+    lifespan=lifespan,
+    title="FastAPI Application",
+    description="FastAPI application with SQLAlchemy integration",
+    version="1.0.0"
+)
 
-# 自定义 Swagger UI 页面
-@app.get("/docs", include_in_schema=False)
-def custom_swagger_ui():
-    return get_swagger_ui_html(
-        openapi_url="/openapi.json",
-        title="Docs",
-        swagger_js_url="/static/swagger-ui/swagger-ui-bundle.js",
-        swagger_css_url="/static/swagger-ui/swagger-ui.css",
-    )
+# CORS (Cross-Origin Resource Sharing) configuration
+# Allows requests from any origin (*) with all HTTP methods and headers
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins
+    allow_credentials=True,  # Allow credentials (cookies, authorization headers)
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
+)
+
+# Include API routers
+# This mounts the users router at /users endpoint
+app.include_router(
+    users.router,  # Router containing user-related endpoints
+    prefix="/users"  # All routes will be prefixed with /users
+)
 
 @app.get("/")
-async def root():
-    return {"message": "Hello, World!"}
-
-# 定义一个带参数的路由
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: str = None):
-    return {"item_id": item_id, "q": q}
+def read_root():
+    return {"message": "Welcome to the FastAPI application"}
